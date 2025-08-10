@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>通义千问智能代码生成</title>
+<style>
+body { font-family: "Microsoft YaHei", sans-serif; margin: 40px; background: #f9f9f9;}
+.container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 12px rgba(0,0,0,0.1);}
+textarea { width: 100%; height: 150px; font-size: 16px; padding: 10px; border-radius: 4px; border: 1px solid #ccc; }
+button { margin-top: 10px; padding: 12px 20px; font-size: 18px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;}
+button:hover { background: #0056b3;}
+pre { background: #eee; padding: 10px; border-radius: 4px; max-height: 500px; overflow-y: auto; white-space: pre-wrap; margin-top: 20px;}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Step 4 - 通义千问智能代码生成</h1>
+  <textarea id="requirement" placeholder="请输入你的自然语言需求，比如：创建一个简单的Todo列表API..."></textarea>
+  <br/>
+  <button onclick="generateCode()">生成代码 + 测试 + README + 架构说明</button>
+  <pre id="result"></pre>
+</div>
+
+<script>
+async function generateCode() {
+  const requirement = document.getElementById('requirement').value.trim();
+  const resultEl = document.getElementById('result');
+  if (!requirement) {
+    alert('请输入需求');
+    return;
+  }
+  resultEl.textContent = "生成中，请稍候...";
+  try {
+    const res = await fetch('/generate_code', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({requirement})
+    });
+    const data = await res.json();
+    if (res.ok && data.status === "success") {
+      const r = data.result;
+      resultEl.textContent =
+        "=== 主代码 ===\n" + r.code + "\n\n" +
+        "=== 测试代码 ===\n" + r.test + "\n\n" +
+        "=== 测试执行结果 ===\n" + r.test_result + "\n\n" +
+        "=== README ===\n" + r.readme + "\n\n" +
+        "=== 架构说明 ===\n" + r.architecture;
+    } else {
+      resultEl.textContent = "错误：" + (data.message || "未知错误");
+    }
+  } catch(e) {
+    resultEl.textContent = "请求失败：" + e.message;
+  }
+}
+</script>
+</body>
+</html>
